@@ -65,8 +65,8 @@ FONT_COLOR = (0, 0, 0)
 class Dinosaur:
 
     X_POS = 150
-    Y_POS = 310
-    Y_POS_DUCK = 350
+    Y_POS = 810
+    Y_POS_DUCK = 850
     JUMP_VEL = 8
 
     def __init__(self):
@@ -179,18 +179,18 @@ class SmallCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.rect.y = 400
+        self.rect.y = 900
 
 
 class LargeCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.rect.y = 355
+        self.rect.y = 855
 
 
 class Bird(Obstacle):
-    BIRD_HEIGHTS = [230, 250, 330]
+    BIRD_HEIGHTS = [730, 750, 830]
 
     def __init__(self, image):
         self.type = 0
@@ -285,7 +285,6 @@ def main():
     death_count = 0
     pause = False
 
-    background()
     player = Dinosaur()
     cloud = Cloud()
     obstacles = []
@@ -329,7 +328,7 @@ def main():
             if player.dino_rect.colliderect(obstacle.rect):
                 game_over = True
 
-        background()
+        # background()
         cloud.draw(SCREEN)
         cloud.update()
 

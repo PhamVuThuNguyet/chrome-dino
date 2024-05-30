@@ -7,54 +7,66 @@ import pygame
 
 pygame.init()
 
+
+def scale_image(path, scale=15):
+    image = pygame.image.load(path)
+    image = pygame.transform.scale(
+        image, (image.get_size()[0] // scale, image.get_size()[1] // scale)
+    )
+    return image
+
+
 # Global Constants
-SCREEN_HEIGHT = 600
-SCREEN_WIDTH = 1100
+SCREEN_HEIGHT = 1080
+SCREEN_WIDTH = 1920
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 pygame.display.set_caption("Chrome Dino Runner")
 
-Ico = pygame.image.load("assets/DinoWallpaper.png")
+Ico = scale_image("assets/DinoWallpaper.png")
 pygame.display.set_icon(Ico)
 
 RUNNING = [
-    pygame.image.load(os.path.join("assets/Dino", "DinoRun1.png")),
-    pygame.image.load(os.path.join("assets/Dino", "DinoRun2.png")),
+    scale_image(os.path.join("assets/Dino", "DinoRun1.png")),
+    scale_image(os.path.join("assets/Dino", "DinoRun2.png")),
 ]
-JUMPING = pygame.image.load(os.path.join("assets/Dino", "DinoJump.png"))
+JUMPING = scale_image(os.path.join("assets/Dino", "DinoJump.png"))
 DUCKING = [
-    pygame.image.load(os.path.join("assets/Dino", "DinoDuck1.png")),
-    pygame.image.load(os.path.join("assets/Dino", "DinoDuck2.png")),
+    scale_image(os.path.join("assets/Dino", "DinoDuck1.png")),
+    scale_image(os.path.join("assets/Dino", "DinoDuck2.png")),
 ]
 
 SMALL_CACTUS = [
-    pygame.image.load(os.path.join("assets/Cactus", "SmallCactus1.png")),
-    pygame.image.load(os.path.join("assets/Cactus", "SmallCactus2.png")),
-    pygame.image.load(os.path.join("assets/Cactus", "SmallCactus3.png")),
+    scale_image(os.path.join("assets/Cactus", "SmallCactus1.png"), 5),
+    scale_image(os.path.join("assets/Cactus", "SmallCactus2.png"), 5),
+    scale_image(os.path.join("assets/Cactus", "SmallCactus3.png"), 5),
 ]
 LARGE_CACTUS = [
-    pygame.image.load(os.path.join("assets/Cactus", "LargeCactus1.png")),
-    pygame.image.load(os.path.join("assets/Cactus", "LargeCactus2.png")),
-    pygame.image.load(os.path.join("assets/Cactus", "LargeCactus3.png")),
+    scale_image(os.path.join("assets/Cactus", "LargeCactus1.png"), 4),
+    scale_image(os.path.join("assets/Cactus", "LargeCactus2.png"), 4),
+    scale_image(os.path.join("assets/Cactus", "LargeCactus3.png"), 4),
 ]
 
 BIRD = [
-    pygame.image.load(os.path.join("assets/Bird", "Bird1.png")),
-    pygame.image.load(os.path.join("assets/Bird", "Bird2.png")),
+    scale_image(os.path.join("assets/Bird", "Bird1.png")),
+    scale_image(os.path.join("assets/Bird", "Bird2.png")),
 ]
 
 CLOUD = pygame.image.load(os.path.join("assets/Other", "Cloud.png"))
 
-BG = pygame.image.load(os.path.join("assets/Other", "Track.png"))
+BG = pygame.transform.scale(
+    pygame.image.load(os.path.join("assets/Other", "Track.jpg")),
+    (SCREEN_WIDTH, SCREEN_HEIGHT),
+)
 
 FONT_COLOR = (0, 0, 0)
 
 
 class Dinosaur:
 
-    X_POS = 80
+    X_POS = 150
     Y_POS = 310
-    Y_POS_DUCK = 340
+    Y_POS_DUCK = 350
     JUMP_VEL = 8
 
     def __init__(self):
@@ -70,10 +82,7 @@ class Dinosaur:
 
         self.step_index = 0
         self.jump_vel = self.JUMP_VEL
-        self.dino_rect = self.image.get_rect()
-        self.dino_rect.height -= 30
-        self.dino_rect.x = self.X_POS
-        self.dino_rect.y = self.Y_POS
+        self.dino_rect = self.image.get_rect(topleft=(self.X_POS, self.Y_POS))
 
     def update(self, userInput):
         if self.dino_duck:
@@ -113,9 +122,7 @@ class Dinosaur:
     def run(self):
         self.image = self.run_img[self.step_index // 5]
 
-        self.dino_rect = self.image.get_rect()
-        self.dino_rect.x = self.X_POS
-        self.dino_rect.y = self.Y_POS
+        self.dino_rect = self.image.get_rect(topleft=(self.X_POS, self.Y_POS))
 
         self.step_index += 1
 
@@ -129,7 +136,7 @@ class Dinosaur:
             self.dino_jump = False
             self.jump_vel = self.JUMP_VEL
 
-    def draw(self, SCREEN):
+    def draw(self, SCREEN) -> None:
         SCREEN.blit(self.image, (self.dino_rect.x, self.dino_rect.y))
         pygame.draw.rect(SCREEN, "#000000", self.dino_rect, 2)
 
@@ -172,18 +179,18 @@ class SmallCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.rect.y = 325
+        self.rect.y = 400
 
 
 class LargeCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.rect.y = 300
+        self.rect.y = 355
 
 
 class Bird(Obstacle):
-    BIRD_HEIGHTS = [250, 290, 320]
+    BIRD_HEIGHTS = [230, 250, 330]
 
     def __init__(self, image):
         self.type = 0
@@ -203,20 +210,6 @@ def main():
     global game_speed, x_pos_bg, y_pos_bg, points, obstacles
 
     run = True
-
-    player = Dinosaur()
-    cloud = Cloud()
-    obstacles = []
-    font = pygame.font.Font("freesansbold.ttf", 20)
-
-    clock = pygame.time.Clock()
-    game_speed = 20
-    x_pos_bg = 0
-    y_pos_bg = 380
-    points = 0
-
-    death_count = 0
-    pause = False
 
     def score():
         global points, game_speed
@@ -244,12 +237,14 @@ def main():
                 True,
                 FONT_COLOR,
             )
+
         textRect = text.get_rect()
         textRect.center = (900, 40)
         SCREEN.blit(text, textRect)
 
     def background():
         global x_pos_bg, y_pos_bg
+
         image_width = BG.get_width()
         SCREEN.blit(BG, (x_pos_bg, y_pos_bg))
         SCREEN.blit(BG, (image_width + x_pos_bg, y_pos_bg))
@@ -281,6 +276,22 @@ def main():
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_u:
                     unpause()
 
+    clock = pygame.time.Clock()
+    game_speed = 20
+    x_pos_bg = 0
+    y_pos_bg = 0
+    points = 0
+
+    death_count = 0
+    pause = False
+
+    background()
+    player = Dinosaur()
+    cloud = Cloud()
+    obstacles = []
+    font = pygame.font.Font("freesansbold.ttf", 20)
+
+    game_over = False
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -289,6 +300,11 @@ def main():
                 run = False
                 paused()
 
+        if game_over:
+            pygame.time.delay(1000)
+            death_count += 1
+            menu(death_count)
+
         current_time = datetime.datetime.now().hour
         if 7 < current_time < 19:
             SCREEN.fill((255, 255, 255))
@@ -296,8 +312,8 @@ def main():
             SCREEN.fill((0, 0, 0))
         userInput = pygame.key.get_pressed()
 
-        player.draw(SCREEN)
         player.update(userInput)
+        player.draw(SCREEN)
 
         if len(obstacles) == 0:
             if random.randint(0, 2) == 0:
@@ -308,15 +324,12 @@ def main():
                 obstacles.append(Bird(BIRD))
 
         for obstacle in obstacles:
-            obstacle.draw(SCREEN)
             obstacle.update()
-            if pygame.Rect.colliderect(player.dino_rect, obstacle.rect):
-                pygame.time.delay(1000)
-                death_count += 1
-                menu(death_count)
+            obstacle.draw(SCREEN)
+            if player.dino_rect.colliderect(obstacle.rect):
+                game_over = True
 
         background()
-
         cloud.draw(SCREEN)
         cloud.update()
 
@@ -329,6 +342,7 @@ def main():
 def menu(death_count):
     global points
     global FONT_COLOR
+
     run = True
     while run:
         current_time = datetime.datetime.now().hour
@@ -368,6 +382,7 @@ def menu(death_count):
         SCREEN.blit(text, textRect)
         SCREEN.blit(RUNNING[0], (SCREEN_WIDTH // 2 - 20, SCREEN_HEIGHT // 2 - 140))
         pygame.display.update()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False

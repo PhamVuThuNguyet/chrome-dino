@@ -337,13 +337,12 @@ def main():
         player.draw(SCREEN)
 
         if len(obstacles) == 0:
-            # if random.randint(0, 2) == 0:
-            #     obstacles.append(SmallCactus(SMALL_CACTUS))
-            # elif random.randint(0, 2) == 1:
-            #     obstacles.append(LargeCactus(LARGE_CACTUS))
-            # elif random.randint(0, 2) == 2:
-            #     obstacles.append(Bird(BIRD))
-            obstacles.append(Bird(BIRD))
+            if random.randint(0, 2) == 0:
+                obstacles.append(SmallCactus(SMALL_CACTUS))
+            elif random.randint(0, 2) == 1:
+                obstacles.append(LargeCactus(LARGE_CACTUS))
+            elif random.randint(0, 2) == 2:
+                obstacles.append(Bird(BIRD))
 
         for obstacle in obstacles:
             obstacle.update()

@@ -17,8 +17,10 @@ def scale_image(path, scale=15):
 
 
 # Global Constants
-SCREEN_HEIGHT = 1080
-SCREEN_WIDTH = 1920
+SCREEN = pygame.display.set_mode()
+x, y = SCREEN.get_size()
+SCREEN_HEIGHT = y
+SCREEN_WIDTH = x
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 pygame.display.set_caption("Stapi Runner")
@@ -59,15 +61,18 @@ BG = pygame.transform.scale(
     (SCREEN_WIDTH, SCREEN_HEIGHT),
 )
 
+LOGO = scale_image(os.path.join("assets/Other", "Logo.png"), 0.5)
+
 FONT_COLOR = (0, 0, 0)
 
 
 class Dinosaur:
 
     X_POS = 150
-    Y_POS = 810
-    Y_POS_DUCK = 850
+    Y_POS = SCREEN_HEIGHT * 75 / 100
+    Y_POS_DUCK = Y_POS + 50
     JUMP_VEL = 8
+    DUCK_VEL = 8
 
     def __init__(self):
         self.duck_img = DUCKING
@@ -82,6 +87,7 @@ class Dinosaur:
 
         self.step_index = 0
         self.jump_vel = self.JUMP_VEL
+        self.duck_vel = self.DUCK_VEL
         self.dino_rect = self.image.get_rect(topleft=(self.X_POS, self.Y_POS))
 
     def update(self, userInput):
@@ -105,7 +111,7 @@ class Dinosaur:
             self.dino_run = False
             self.dino_jump = False
 
-        elif not (self.dino_jump or userInput[pygame.K_DOWN]):
+        elif not (self.dino_jump or self.dino_duck):
             self.dino_duck = False
             self.dino_run = True
             self.dino_jump = False
@@ -113,9 +119,15 @@ class Dinosaur:
     def duck(self):
         self.image = self.duck_img[self.step_index // 5]
 
-        self.dino_rect = self.image.get_rect()
-        self.dino_rect.x = self.X_POS
-        self.dino_rect.y = self.Y_POS_DUCK
+        if self.dino_duck:
+            self.dino_rect = self.image.get_rect()
+            self.dino_rect.x = self.X_POS
+            self.dino_rect.y = self.Y_POS_DUCK
+            self.duck_vel -= 1.5
+
+        if self.duck_vel < -self.DUCK_VEL:
+            self.dino_duck = False
+            self.duck_vel = self.DUCK_VEL
 
         self.step_index += 1
 
@@ -130,6 +142,7 @@ class Dinosaur:
         self.image = self.jump_img
         if self.dino_jump:
             self.dino_rect.y -= self.jump_vel * 4
+            self.dino_rect.x += self.jump_vel // 2
             self.jump_vel -= 0.8
 
         if self.jump_vel < -self.JUMP_VEL:
@@ -138,7 +151,6 @@ class Dinosaur:
 
     def draw(self, SCREEN) -> None:
         SCREEN.blit(self.image, (self.dino_rect.x, self.dino_rect.y))
-        # pygame.draw.rect(SCREEN, "#000000", self.dino_rect, 2)
 
 
 class Cloud:
@@ -172,25 +184,28 @@ class Obstacle:
 
     def draw(self, SCREEN):
         SCREEN.blit(self.image[self.type], self.rect)
-        # pygame.draw.rect(SCREEN, "#000000", self.rect, 2)
 
 
 class SmallCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.rect.y = 900
+        self.rect.y = SCREEN_HEIGHT * 75 / 100 + 100
 
 
 class LargeCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.rect.y = 855
+        self.rect.y = SCREEN_HEIGHT * 75 / 100 + 80
 
 
 class Bird(Obstacle):
-    BIRD_HEIGHTS = [730, 750, 830]
+    BIRD_HEIGHTS = [
+        SCREEN_HEIGHT * 75 / 100 - 80,
+        SCREEN_HEIGHT * 75 / 100 - 60,
+        SCREEN_HEIGHT * 75 / 100 + 60,
+    ]
 
     def __init__(self, image):
         self.type = 0
@@ -216,11 +231,11 @@ def main():
         if points % 100 == 0:
             game_speed += 1
 
-        seconds = points % 60
-        minutes = (points // 60) % 60
+        seconds = (points // 10) % 60
+        minutes = (points // 60 // 10) % 60
         hours = (points // (60 * 60)) % (60 * 60)
         tt = datetime.time(second=seconds, minute=minutes, hour=hours)
-        score_string = tt.strftime("%H:%M:%S")
+        score_string = tt.strftime("%M:%S")
 
         if not os.path.exists("score.txt"):
             with open("score.txt", "w+", encoding="utf-8") as f:
@@ -257,6 +272,8 @@ def main():
             x_pos_bg = 0
         x_pos_bg -= game_speed
 
+        SCREEN.blit(LOGO, (SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT // 2 - 200))
+
     def unpause():
         nonlocal pause, run
         pause = False
@@ -281,7 +298,7 @@ def main():
                     unpause()
 
     clock = pygame.time.Clock()
-    game_speed = 20
+    game_speed = 25
     x_pos_bg = 0
     y_pos_bg = 0
     points = 0
@@ -320,12 +337,13 @@ def main():
         player.draw(SCREEN)
 
         if len(obstacles) == 0:
-            if random.randint(0, 2) == 0:
-                obstacles.append(SmallCactus(SMALL_CACTUS))
-            elif random.randint(0, 2) == 1:
-                obstacles.append(LargeCactus(LARGE_CACTUS))
-            elif random.randint(0, 2) == 2:
-                obstacles.append(Bird(BIRD))
+            # if random.randint(0, 2) == 0:
+            #     obstacles.append(SmallCactus(SMALL_CACTUS))
+            # elif random.randint(0, 2) == 1:
+            #     obstacles.append(LargeCactus(LARGE_CACTUS))
+            # elif random.randint(0, 2) == 2:
+            #     obstacles.append(Bird(BIRD))
+            obstacles.append(Bird(BIRD))
 
         for obstacle in obstacles:
             obstacle.update()
@@ -338,7 +356,7 @@ def main():
 
         score()
 
-        clock.tick(30)
+        clock.tick(240)
         pygame.display.update()
 
 

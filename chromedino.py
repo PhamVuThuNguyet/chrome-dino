@@ -21,7 +21,7 @@ SCREEN_HEIGHT = 1080
 SCREEN_WIDTH = 1920
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-pygame.display.set_caption("Chrome Dino Runner")
+pygame.display.set_caption("Stapi Runner")
 
 Ico = scale_image("assets/DinoWallpaper.png")
 pygame.display.set_icon(Ico)
@@ -138,7 +138,7 @@ class Dinosaur:
 
     def draw(self, SCREEN) -> None:
         SCREEN.blit(self.image, (self.dino_rect.x, self.dino_rect.y))
-        pygame.draw.rect(SCREEN, "#000000", self.dino_rect, 2)
+        # pygame.draw.rect(SCREEN, "#000000", self.dino_rect, 2)
 
 
 class Cloud:
@@ -172,7 +172,7 @@ class Obstacle:
 
     def draw(self, SCREEN):
         SCREEN.blit(self.image[self.type], self.rect)
-        pygame.draw.rect(SCREEN, "#000000", self.rect, 2)
+        # pygame.draw.rect(SCREEN, "#000000", self.rect, 2)
 
 
 class SmallCactus(Obstacle):
@@ -202,7 +202,6 @@ class Bird(Obstacle):
         if self.index >= 9:
             self.index = 0
         SCREEN.blit(self.image[self.index // 5], self.rect)
-        pygame.draw.rect(SCREEN, "#000000", self.rect, 2)
         self.index += 1
 
 
@@ -216,7 +215,12 @@ def main():
         points += 1
         if points % 100 == 0:
             game_speed += 1
-        current_time = datetime.datetime.now().hour
+
+        seconds = points % 60
+        minutes = (points // 60) % 60
+        hours = (points // (60 * 60)) % (60 * 60)
+        tt = datetime.time(second=seconds, minute=minutes, hour=hours)
+        score_string = tt.strftime("%H:%M:%S")
 
         if not os.path.exists("score.txt"):
             with open("score.txt", "w+", encoding="utf-8") as f:
@@ -233,7 +237,7 @@ def main():
             if points > highscore:
                 highscore = points
             text = font.render(
-                "High Score: " + str(highscore) + "  Points: " + str(points),
+                "Score: " + str(score_string),
                 True,
                 FONT_COLOR,
             )
@@ -311,6 +315,7 @@ def main():
             SCREEN.fill((0, 0, 0))
         userInput = pygame.key.get_pressed()
 
+        background()
         player.update(userInput)
         player.draw(SCREEN)
 
@@ -328,7 +333,6 @@ def main():
             if player.dino_rect.colliderect(obstacle.rect):
                 game_over = True
 
-        # background()
         cloud.draw(SCREEN)
         cloud.update()
 
@@ -357,29 +361,23 @@ def menu(death_count):
             text = font.render("Press any Key to Start", True, FONT_COLOR)
         elif death_count > 0:
             text = font.render("Press any Key to Restart", True, FONT_COLOR)
-            score = font.render("Your Score: " + str(points), True, FONT_COLOR)
+            seconds = points % 60
+            minutes = (points // 60) % 60
+            hours = (points // (60 * 60)) % (60 * 60)
+            tt = datetime.time(second=seconds, minute=minutes, hour=hours)
+            score_string = tt.strftime("%H:%M:%S")
+            score = font.render("Your Score: " + str(score_string), True, FONT_COLOR)
             scoreRect = score.get_rect()
             scoreRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50)
             SCREEN.blit(score, scoreRect)
             f = open("score.txt", "a")
             f.write(str(points) + "\n")
             f.close()
-            with open("score.txt", "r") as f:
-                score = (
-                    f.read()
-                )  # Read all file in case values are not on a single line
-                score_ints = [int(x) for x in score.split()]  # Convert strings to ints
-            highscore = max(score_ints)  # sum all elements of the list
-            hs_score_text = font.render(
-                "High Score : " + str(highscore), True, FONT_COLOR
-            )
-            hs_score_rect = hs_score_text.get_rect()
-            hs_score_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100)
-            SCREEN.blit(hs_score_text, hs_score_rect)
+
         textRect = text.get_rect()
         textRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         SCREEN.blit(text, textRect)
-        SCREEN.blit(RUNNING[0], (SCREEN_WIDTH // 2 - 20, SCREEN_HEIGHT // 2 - 140))
+        SCREEN.blit(RUNNING[0], (SCREEN_WIDTH // 2 - 40, SCREEN_HEIGHT // 2 - 180))
         pygame.display.update()
 
         for event in pygame.event.get():

@@ -4,6 +4,13 @@ import random
 import threading
 
 import pygame
+import socketio
+
+# Create a Socket.IO server
+sio = socketio.Server()
+
+# Wrap with a WSGI application
+app = socketio.WSGIApp(sio)
 
 pygame.init()
 
@@ -65,6 +72,8 @@ LOGO = scale_image(os.path.join("assets/Other", "Logo.png"), 0.5)
 
 FONT_COLOR = (0, 0, 0)
 
+userInput = {pygame.K_UP: False, pygame.K_DOWN: False, pygame.K_SPACE: False}
+
 
 class Dinosaur:
 
@@ -90,7 +99,7 @@ class Dinosaur:
         self.duck_vel = self.DUCK_VEL
         self.dino_rect = self.image.get_rect(topleft=(self.X_POS, self.Y_POS))
 
-    def update(self, userInput):
+    def update(self):
         if self.step_index >= 10:
             self.step_index = 0
 
@@ -101,7 +110,7 @@ class Dinosaur:
         if self.dino_jump:
             self.jump()
 
-        if (userInput[pygame.K_UP] or userInput[pygame.K_SPACE]) and not self.dino_jump:
+        if userInput[pygame.K_UP] and not self.dino_jump:
             self.dino_duck = False
             self.dino_run = False
             self.dino_jump = True
@@ -330,10 +339,9 @@ def main():
             SCREEN.fill((255, 255, 255))
         else:
             SCREEN.fill((0, 0, 0))
-        userInput = pygame.key.get_pressed()
 
         background()
-        player.update(userInput)
+        player.update()
         player.draw(SCREEN)
 
         if len(obstacles) == 0:
@@ -387,9 +395,8 @@ def menu(death_count):
             scoreRect = score.get_rect()
             scoreRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50)
             SCREEN.blit(score, scoreRect)
-            f = open("score.txt", "a")
-            f.write(str(points) + "\n")
-            f.close()
+            with open("score.txt", "a") as f:
+                f.write(str(points) + "\n")
 
         textRect = text.get_rect()
         textRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
@@ -403,9 +410,57 @@ def menu(death_count):
                 pygame.display.quit()
                 pygame.quit()
                 exit()
-            if event.type == pygame.KEYDOWN:
-                main()
+
+        if userInput[pygame.K_SPACE]:
+            main()
 
 
-t1 = threading.Thread(target=menu(death_count=0), daemon=True)
-t1.start()
+# Socket.IO event handlers
+@sio.event
+def connect(sid, environ):
+    print("Client connected:", sid)
+
+
+@sio.event
+def disconnect(sid):
+    print("Client disconnected:", sid)
+
+
+@sio.event
+def character_movement(sid, data):
+    global userInput
+    if data["direction"] == "up":
+        userInput[pygame.K_UP] = True
+    elif data["direction"] == "down":
+        userInput[pygame.K_DOWN] = True
+    elif data["direction"] == "space":
+        userInput[pygame.K_SPACE] = True
+    elif data["direction"] == "normal":
+        userInput[pygame.K_UP] = False
+        userInput[pygame.K_DOWN] = False
+        userInput[pygame.K_SPACE] = False
+
+    print(userInput)
+
+
+def start_server():
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+
+    server = pywsgi.WSGIServer(("0.0.0.0", 5000), app, handler_class=WebSocketHandler)
+    print("Starting server on port 5000")
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+
+    t2 = threading.Thread(target=start_server)
+
+    # t1.start()
+    t2.start()
+
+    t1 = threading.Thread(target=menu(death_count=0))
+    t1.start()
+
+    t1.join()
+    t2.join()

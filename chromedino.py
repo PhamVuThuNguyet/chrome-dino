@@ -91,6 +91,9 @@ class Dinosaur:
         self.dino_rect = self.image.get_rect(topleft=(self.X_POS, self.Y_POS))
 
     def update(self, userInput):
+        if self.step_index >= 10:
+            self.step_index = 0
+
         if self.dino_duck:
             self.duck()
         if self.dino_run:
@@ -98,15 +101,12 @@ class Dinosaur:
         if self.dino_jump:
             self.jump()
 
-        if self.step_index >= 10:
-            self.step_index = 0
-
         if (userInput[pygame.K_UP] or userInput[pygame.K_SPACE]) and not self.dino_jump:
             self.dino_duck = False
             self.dino_run = False
             self.dino_jump = True
 
-        elif userInput[pygame.K_DOWN] and not self.dino_jump:
+        elif userInput[pygame.K_DOWN] and not self.dino_duck:
             self.dino_duck = True
             self.dino_run = False
             self.dino_jump = False
@@ -123,7 +123,7 @@ class Dinosaur:
             self.dino_rect = self.image.get_rect()
             self.dino_rect.x = self.X_POS
             self.dino_rect.y = self.Y_POS_DUCK
-            self.duck_vel -= 1.5
+            self.duck_vel -= 1.8
 
         if self.duck_vel < -self.DUCK_VEL:
             self.dino_duck = False
@@ -140,6 +140,7 @@ class Dinosaur:
 
     def jump(self):
         self.image = self.jump_img
+
         if self.dino_jump:
             self.dino_rect.y -= self.jump_vel * 4
             self.dino_rect.x += self.jump_vel // 2
@@ -355,7 +356,7 @@ def main():
 
         score()
 
-        clock.tick(240)
+        clock.tick(500)
         pygame.display.update()
 
 
@@ -378,11 +379,11 @@ def menu(death_count):
             text = font.render("Press any Key to Start", True, FONT_COLOR)
         elif death_count > 0:
             text = font.render("Press any Key to Restart", True, FONT_COLOR)
-            seconds = points % 60
-            minutes = (points // 60) % 60
+            seconds = (points // 10) % 60
+            minutes = (points // 60 // 10) % 60
             hours = (points // (60 * 60)) % (60 * 60)
             tt = datetime.time(second=seconds, minute=minutes, hour=hours)
-            score_string = tt.strftime("%H:%M:%S")
+            score_string = tt.strftime("%M:%S")
             score = font.render("Your Score: " + str(score_string), True, FONT_COLOR)
             scoreRect = score.get_rect()
             scoreRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50)

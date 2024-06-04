@@ -238,7 +238,7 @@ def main():
         global points, game_speed
         points += 1
         if points % 100 == 0:
-            game_speed += 1
+            game_speed += 10
 
         seconds = (points // 10) % 60
         minutes = (points // 60 // 10) % 60

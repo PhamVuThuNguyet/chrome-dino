@@ -203,7 +203,6 @@ class LargeCactus(Obstacle):
 
 class Bird(Obstacle):
     BIRD_HEIGHTS = [
-        SCREEN_HEIGHT * 75 / 100 - 80,
         SCREEN_HEIGHT * 75 / 100 - 60,
         SCREEN_HEIGHT * 75 / 100 + 60,
     ]

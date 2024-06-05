@@ -383,9 +383,9 @@ def menu(death_count):
         font = pygame.font.Font("freesansbold.ttf", 30)
 
         if death_count == 0:
-            text = font.render("Press any Key to Start", True, FONT_COLOR)
+            text = font.render("Press Space to Start", True, FONT_COLOR)
         elif death_count > 0:
-            text = font.render("Press any Key to Restart", True, FONT_COLOR)
+            text = font.render("Press Space to Restart", True, FONT_COLOR)
             seconds = (points // 10) % 60
             minutes = (points // 60 // 10) % 60
             hours = (points // (60 * 60)) % (60 * 60)
@@ -411,8 +411,8 @@ def menu(death_count):
                 pygame.quit()
                 exit()
 
-        if userInput[pygame.K_SPACE]:
-            main()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                main()
 
 
 # Socket.IO event handlers

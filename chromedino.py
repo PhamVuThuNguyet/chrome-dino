@@ -363,13 +363,14 @@ def main():
 
         score()
 
-        clock.tick(500)
+        clock.tick(30)
         pygame.display.update()
 
 
 def menu(death_count):
     global points
     global FONT_COLOR
+    global userInput
 
     run = True
     while run:
@@ -411,8 +412,8 @@ def menu(death_count):
                 pygame.quit()
                 exit()
 
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                main()
+        if userInput[pygame.K_SPACE]:
+            main()
 
 
 # Socket.IO event handlers
